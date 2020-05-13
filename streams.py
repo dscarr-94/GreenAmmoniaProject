@@ -195,27 +195,48 @@ def calculate_balance(worksheet):
 	entropy_flow = find_row_with_key(worksheet, "Entropy Flow")
 	entropy_sum = 0 #Initialize counter	
 	for col in worksheet.iter_cols(min_row=entropy_flow, max_row=entropy_flow, min_col=3, max_col=worksheet.max_column):
+		lastCol = col
 		for cell in col:
 			in_out_row = str(cell.column_letter) + "1"
 			if worksheet[in_out_row].value == "In": #Check if the first row in this col has In or Out
 				entropy_sum += cell.value 			#If In, Add to the sum
 			if worksheet[in_out_row].value == "Out":
 				entropy_sum -= cell.value 			#If out, Subtract from sum
-	lastCol[0].offset(row=1,column=1).value = entropy_sum
-	lastCol[0].offset(row=1,column=1).fill = YELLOW_HIGHLIGHT
+	lastCol[0].value = entropy_sum
+	lastCol[0].fill = YELLOW_HIGHLIGHT
 
 	exergy_flow = find_row_with_key(worksheet, "Exergy Flow")
 	exergy_sum = 0 #Initialize counter	
 	for col in worksheet.iter_cols(min_row=exergy_flow, max_row=exergy_flow, min_col=3, max_col=worksheet.max_column):
+		lastCol = col
 		for cell in col:
 			in_out_row = str(cell.column_letter) + "1"
 			if worksheet[in_out_row].value == "In": #Check if the first row in this col has In or Out
 				exergy_sum += cell.value 			#If In, Add to the sum
 			if worksheet[in_out_row].value == "Out":
 				exergy_sum -= cell.value 			#If out, Subtract from sum
-	lastCol[0].offset(row=2,column=1).value = exergy_sum
-	lastCol[0].offset(row=2,column=1).fill = YELLOW_HIGHLIGHT
-	worksheet[(str((lastCol[0].offset(column=1)).column_letter) + "1")].value = "Balances" #Convoluted, just add title to cell
+	lastCol[0].value = exergy_sum
+	lastCol[0].fill = YELLOW_HIGHLIGHT
+	worksheet[(str((lastCol[0]).column_letter) + "1")].value = "Balances" #Convoluted, just add title to cell
+
+	mass_flows = find_row_with_key(worksheet, "Mass Flows")
+	mass_sum = 0 #Initialize counter	
+	for col in worksheet.iter_cols(min_row=mass_flows, max_row=mass_flows, min_col=3, max_col=worksheet.max_column):
+		lastCol = col
+		for cell in col:
+			in_out_row = str(cell.column_letter) + "1"
+			if worksheet[in_out_row].value == "In": #Check if the first row in this col has In or Out
+				mass_sum += cell.value 			#If In, Add to the sum
+			if worksheet[in_out_row].value == "Out":
+				mass_sum -= cell.value 			#If out, Subtract from sum
+	if(abs(mass_sum <= 10)):	#Check if the mass_flow sum is greater than 10, if so MB_Error
+		lastCol[0].value = mass_sum
+		lastCol[0].fill = YELLOW_HIGHLIGHT
+		return 1
+	else:	
+		print("MB_Error, Mass Flow Sum is: " + str(mass_sum))
+		print("See cell: " + str(lastCol[0].coordinate))
+		return 0
 
 def step_six(worksheet):
 	#Lesson, do not use array for deleting rows because they change dynamically per each deletion
@@ -294,7 +315,6 @@ def add_text(worksheet, title, overall_text):
 				cell.offset(column=1).value = block_name_array[idx]
 				idx += 1
 
-
 def copy_worksheet(workbook, sheetName):
 	source = workbook.active
 	target = workbook.copy_worksheet(source)
@@ -315,7 +335,7 @@ def step_eight(worksheet):
 	addInOutValues(worksheet)
 
 def step_nine(worksheet):
-	calculate_balance(worksheet)
+	return calculate_balance(worksheet)
 
 #Looks at the to row, returns array of tuples with format as follows:
 #	(to-row-name, stream-name)
@@ -370,8 +390,10 @@ def main():
 			pbar.update(25)
 			step_eight(overall)
 			pbar.update(25)
-			step_nine(overall)
+			check = step_nine(overall)
 			wb_stream.save(streamWorkbook)
+			if(check == 0):
+				sys.exit()
 			pbar.update(25)
 
 	with tqdm(total=100, file=sys.stdout) as pbar:
