@@ -340,46 +340,191 @@ def step_nine(worksheet):
 #Looks at the to row, returns array of tuples with format as follows:
 #	(to-row-name, stream-name)
 def prepare_for_overall_inlet(worksheet):
-	return_arr = []
+	return_dict = {}
 	to_row = find_row_with_key(worksheet,"To")
+	stream_name_row = find_row_with_key(worksheet, "Stream Name") - to_row
 	for col in worksheet.iter_cols(min_row=to_row, max_row=to_row,min_col=3):
 		for cell in col:
 			if cell.value != None:
-				return_arr.append((cell.value, (cell.offset(row=-2).value)))
-	print(return_arr)
-	return return_arr
+				if(cell.value in return_dict): #Already in dict 
+					return_dict[cell.value].append(cell.offset(row=stream_name_row).value);
+				else: #New key
+					return_dict[cell.value] = [cell.offset(row=stream_name_row).value]
+	return return_dict
+
+def prepare_for_overall_inlet_vals(worksheet):
+	return_vals_dict = {}
+	to_row = find_row_with_key(worksheet,"To")
+	mass_flow_row = find_row_with_key(worksheet,"Mass Flows") - to_row
+	enthalpy_flow_row = find_row_with_key(worksheet,"Enthalpy Flow") - to_row
+	entropy_flow_row = find_row_with_key(worksheet,"Entropy Flow") - to_row
+	for col in worksheet.iter_cols(min_row=to_row, max_row=to_row,min_col=3):
+		for cell in col:
+			if cell.value != None:
+				if(cell.value in return_vals_dict):
+					return_vals_dict[cell.value].append((cell.offset(row=mass_flow_row).value, 
+						cell.offset(row=enthalpy_flow_row).value,
+						cell.offset(row=entropy_flow_row).value))
+				else: #New key
+					return_vals_dict[cell.value] = [(cell.offset(row=mass_flow_row).value, 
+						cell.offset(row=enthalpy_flow_row).value,
+						cell.offset(row=entropy_flow_row).value)]
+	return return_vals_dict
 
 #Looks at the from row, returns array of tuples with format as follows:
 #	(from-row-name, stream-name)
 def prepare_for_overall_outlet(worksheet):
-	return_arr = []
+	return_dict = {}
 	from_row = find_row_with_key(worksheet,"From")
+	stream_name_row = find_row_with_key(worksheet, "Stream Name") - from_row
 	for col in worksheet.iter_cols(min_row=from_row, max_row=from_row,min_col=3):
 		for cell in col:
 			if cell.value != None:
-				return_arr.append((cell.value, (cell.offset(row=-2).value)))
-	return return_arr
+				if(cell.value in return_dict): #Already in dict 
+					return_dict[cell.value].append(cell.offset(row=stream_name_row).value);
+				else: #New key
+					return_dict[cell.value] = [cell.offset(row=stream_name_row).value]
+	return return_dict
 
-def step_twelve(worksheet, inlet_array):
+def prepare_for_overall_outlet_vals(worksheet):
+	return_vals_dict = {}
+	from_row = find_row_with_key(worksheet,"From")
+	mass_flow_row = find_row_with_key(worksheet,"Mass Flows") - from_row
+	enthalpy_flow_row = find_row_with_key(worksheet,"Enthalpy Flow") - from_row
+	entropy_flow_row = find_row_with_key(worksheet,"Entropy Flow") - from_row
+	for col in worksheet.iter_cols(min_row=from_row, max_row=from_row,min_col=3):
+		for cell in col:
+			if cell.value != None:
+				if(cell.value in return_vals_dict):
+					return_vals_dict[cell.value].append((cell.offset(row=mass_flow_row).value, 
+						cell.offset(row=enthalpy_flow_row).value,
+						cell.offset(row=entropy_flow_row).value))
+				else: #New key
+					return_vals_dict[cell.value] = [(cell.offset(row=mass_flow_row).value, 
+						cell.offset(row=enthalpy_flow_row).value,
+						cell.offset(row=entropy_flow_row).value)]
+	return return_vals_dict
+
+#Pretty neat algorithm here if I do say so myself
+def step_twelve_inlet(worksheet, inlet_array, inlet_vals_array):
 	for col in worksheet.iter_cols(min_row=65, max_row=65,min_col=2):
 		for cell in col:
 			if cell.value != "Block Name" and cell.value != None:
-				for x in inlet_array:
-					curr = x[0]
-					if cell.value == curr:
-						print("here")
-						thisCell = cell.offset(row=1)
-						thisCell.value = x[1]
+				for key in inlet_array:
+					if cell.value == key:
+						arr_len = len(inlet_array[key])
+						if(arr_len == 4):
+							thisCell = cell.offset(row=13)
+							thisCell.value = inlet_array[key][3]
+						if(arr_len >= 3):
+							thisCell = cell.offset(row=9)
+							thisCell.value = inlet_array[key][2]
+						if(arr_len >= 2):
+							thisCell = cell.offset(row=5)
+							thisCell.value = inlet_array[key][1]
+						if(arr_len >= 1):
+							thisCell = cell.offset(row=1)
+							thisCell.value = inlet_array[key][0]
+				for key in inlet_vals_array:
+					if cell.value == key:
+						arr_len = len(inlet_vals_array[key])
+						if(arr_len == 4):
+							idx = 0
+							for val in inlet_vals_array[key][3]:
+								thisCell = cell.offset(row=14+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 3):
+							idx = 0
+							for val in inlet_vals_array[key][2]:
+								thisCell = cell.offset(row=10+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 2):
+							idx = 0
+							for val in inlet_vals_array[key][1]:
+								thisCell = cell.offset(row=6+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 1):
+							idx = 0
+							for val in inlet_vals_array[key][0]:
+								thisCell = cell.offset(row=2+idx)
+								thisCell.value = val
+								idx += 1
 
+def step_twelve_outlet(worksheet, outlet_array, outlet_vals_array):
+	for col in worksheet.iter_cols(min_row=65, max_row=65,min_col=2):
+		for cell in col:
+			if cell.value != "Block Name" and cell.value != None:
+				for key in outlet_array:
+					if cell.value == key:
+						arr_len = len(outlet_array[key])
+						if(arr_len == 6):
+							thisCell = cell.offset(row=37)
+							thisCell.value = outlet_array[key][5]
+						if(arr_len >= 5):
+							thisCell = cell.offset(row=33)
+							thisCell.value = outlet_array[key][4]
+						if(arr_len >= 4):
+							thisCell = cell.offset(row=29)
+							thisCell.value = outlet_array[key][3]
+						if(arr_len >= 3):
+							thisCell = cell.offset(row=25)
+							thisCell.value = outlet_array[key][2]
+						if(arr_len >= 2):
+							thisCell = cell.offset(row=21)
+							thisCell.value = outlet_array[key][1]
+						if(arr_len >= 1):
+							thisCell = cell.offset(row=17)
+							thisCell.value = outlet_array[key][0]
+				for key in outlet_vals_array:
+					if cell.value == key:
+						arr_len = len(outlet_vals_array[key])
+						if(arr_len == 6):
+							idx = 0
+							for val in outlet_vals_array[key][5]:
+								thisCell = cell.offset(row=38+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 5):
+							idx = 0
+							for val in outlet_vals_array[key][4]:
+								thisCell = cell.offset(row=34+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 4):
+							idx = 0
+							for val in outlet_vals_array[key][3]:
+								thisCell = cell.offset(row=30+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 3):
+							idx = 0
+							for val in outlet_vals_array[key][2]:
+								thisCell = cell.offset(row=26+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 2):
+							idx = 0
+							for val in outlet_vals_array[key][1]:
+								thisCell = cell.offset(row=22+idx)
+								thisCell.value = val
+								idx += 1
+						if(arr_len >= 1):
+							idx = 0
+							for val in outlet_vals_array[key][0]:
+								thisCell = cell.offset(row=18+idx)
+								thisCell.value = val
+								idx += 1
 def main():
+	inputData = get_config_variables()
+	streamWorkbook = inputData["streamBookName"]
+	print("Working on: " + str(streamWorkbook))
+	wb_stream = openpyxl.load_workbook(streamWorkbook)
+	modifiedWS = copy_worksheet(wb_stream, "Aspen Data Tables Modified")
 	with tqdm(total=100, file=sys.stdout) as pbar:
 		for i in range(1):
-			#print("Main Source file called")
-			inputData = get_config_variables()
-			streamWorkbook = inputData["streamBookName"]
-			#print("Working on: " + str(streamWorkbook))
-			wb_stream = openpyxl.load_workbook(streamWorkbook)
-			modifiedWS = copy_worksheet(wb_stream, "Aspen Data Tables Modified")
 			#Begin work on streams workbook
 			step_six(modifiedWS)
 			pbar.update(25)
@@ -395,31 +540,32 @@ def main():
 			if(check == 0):
 				sys.exit()
 			pbar.update(25)
-
+	
+	#Begin work on models workbook 
+	inputData = get_config_variables()
+	modelWorkbook = inputData["modelBookName"]
+	print("Working on:" + str(modelWorkbook))
+	wb_block = openpyxl.load_workbook(modelWorkbook)
+	overallTitle = inputData["modelTitle"]
+	overallWS = copy_worksheet(wb_block, "Overall")
+	overall_text_add = inputData["overall_text_add"]
 	with tqdm(total=100, file=sys.stdout) as pbar:
 		for i in range(1):
-			#Begin work on models workbook 
-			inputData = get_config_variables()
-			modelWorkbook = inputData["modelBookName"]
-			print("Working on:" + str(modelWorkbook))
-			wb_block = openpyxl.load_workbook(modelWorkbook)
-			overallTitle = inputData["modelTitle"]
-			overallWS = copy_worksheet(wb_block, "Overall")
-			overall_text_add = inputData["overall_text_add"]
 			add_text(overallWS, overallTitle, overall_text_add)
 			wb_block.save(modelWorkbook)
 			pbar.update(50)
-			inlet_array = prepare_for_overall_inlet(overall)
-			step_twelve(overallWS, inlet_array)
+			inlet_array = prepare_for_overall_inlet(modifiedWS)
+			inlet_vals_array = prepare_for_overall_inlet_vals(modifiedWS)
+			step_twelve_inlet(overallWS, inlet_array, inlet_vals_array)
+			outlet_array = prepare_for_overall_outlet(modifiedWS)
+			outlet_vals_array = prepare_for_overall_outlet_vals(modifiedWS)
+			step_twelve_outlet(overallWS, outlet_array, outlet_vals_array)
 			wb_block.save(modelWorkbook)
 			pbar.update(50)
 
 if __name__ == '__main__':
 	main()
 
-#Big question: Follow logic as such - Radfrac, in example given, under C-301 has S35D. 
-# Find this in streams and it is one of the deleted columns because both to and from are filled
-# Where is the error in this? (12)
+#Small bug: Does the order of the outlets matter (i.e for C302, Column AZ), does it matter that 
+#outlet 2 is s40 and not s39? Mine are correct but inverse for >= 3 outlets.
 
-# Big Question: Did I calculate the correct rows (accoridng to example yes but the instructions are confusing)
-# What are the check that should be performed here?
