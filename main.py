@@ -613,7 +613,7 @@ def radfrac_move(worksheet):
 	for x in range(len(val1_array)): #Can do this only because val1 and val2 arrays same length
 		sum_arr.append(val1_array[x] + val2_array[x])
 
-	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1], min_row=r_row_end, max_row=r_row_end):
+	for col in worksheet.iter_cols(min_col=r_range[0] + 1, max_col=r_range[1], min_row=r_row_end, max_row=r_row_end):
 		for cell in col:
 			cell.value = sum_arr[idx]
 
