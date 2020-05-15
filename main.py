@@ -1,8 +1,7 @@
 import yaml
 import openpyxl
-from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
-from openpyxl.styles import Color, PatternFill, Font, Border
-from openpyxl.styles import colors
+from openpyxl.utils.cell import coordinate_from_string, column_index_from_string, get_column_letter
+from openpyxl.styles import Color, PatternFill, Font, Border, colors
 import time
 import sys
 from tqdm import tqdm
@@ -623,6 +622,79 @@ def step_thirteen(worksheet):
 	compr_move(worksheet)
 	radfrac_move(worksheet)
 
+def get_block_arr(worksheet):
+	return_arr = []
+	start_idx = 0
+	end_idx = 0
+	flag1 = False
+	flag2 = False
+	for col in worksheet.iter_cols(min_row=3, max_row=3):
+		for cell in col:
+			if cell.value == "Name":
+				start_idx = cell.col_idx
+				flag1 = True
+			if cell.value == None:
+				end_idx = cell.col_idx
+				flag2 = True
+			if(flag1 == True and flag2 == True):
+				return_arr.append((start_idx+1,end_idx-1))
+				start_idx = 0
+				end_idx= 0
+				flag1 = False
+				flag2 = False
+	return return_arr
+
+def step_fourteen(worksheet):
+	mass_balance_row = find_row_with_key(worksheet, "Mass balance kg/hr")
+	block_arr = get_block_arr(worksheet)
+	spec_arr = []
+	large_arr = []
+	sumVal = 0
+	for block_range in block_arr:
+		for x in range(block_range[0],block_range[1]+1):
+			spec_arr.append(x)
+		large_arr.append(spec_arr)
+		spec_arr = []
+
+	for arr in large_arr:
+		sumVal = 0.0
+		print(arr)
+		for col in arr:
+			curr = worksheet[(get_column_letter(col) + "67")].value #Inlet1
+			print(curr)
+			if(curr != None): 
+			 	sumVal += float(curr)
+			curr = worksheet[(get_column_letter(col) + "71")].value #Inlet2
+			if(curr != None): 
+			 	sumVal += curr
+			curr = worksheet[(get_column_letter(col) + "75")].value #Inlet3
+			if(curr != None): 
+			 	sumVal += curr
+			curr = worksheet[(get_column_letter(col) + "79")].value #Inlet4
+			if(curr != None): 
+			 	sumVal += curr
+			curr = worksheet[(get_column_letter(col) + "83")].value #Outlet1
+			print(curr)
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "87")].value #Outlet2
+			print(curr)
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "91")].value #Outlet3
+			if(curr != None): 
+			 	sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "95")].value #Outlet4
+			if(curr != None): 
+			 	sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "99")].value #Outlet5
+			if(curr != None): 
+			 	sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "103")].value #Outlet6
+			if(curr != None): 
+			 	sumVal -= curr
+			worksheet[(get_column_letter(col) + "108")].value = sumVal #Write Cell - i.e Mass Balance 
+
 def main():
 	inputData = get_config_variables()
 	streamWorkbook = inputData["streamBookName"]
@@ -669,6 +741,7 @@ def main():
 			step_twelve_outlet(overallWS, outlet_array, outlet_vals_array)
 			pbar.update(25)
 			step_thirteen(overallWS)
+			step_fourteen(overallWS)
 			wb_block.save(modelWorkbook)
 			pbar.update(25)
 
@@ -677,4 +750,7 @@ if __name__ == '__main__':
 
 #Small bug: Does the order of the outlets matter (i.e for C302, Column AZ), does it matter that 
 #outlet 2 is s40 and not s39? Mine are correct but inverse for >= 	3 outlets.
+
+#Small bug#2: Cell Y108 says 0 but the real calculation is 4x10^-11. Should I put the "real" val or 
+# Assume that anythign less than sayd 4E-7 is equivelnt to zero? For now keeping real val
 
