@@ -28,6 +28,7 @@ def copy_worksheet(workbook, sheetName):
 	target.title = sheetName
 	return target
 
+#NOTE: This only works for the first column!!
 def find_row_with_key(worksheet, key):
 	rowNum = 0 #loop through and find row for key
 	for row in worksheet.iter_rows(min_row=1, max_row=worksheet.max_row, min_col=1, max_col=1, values_only=True):
@@ -518,6 +519,7 @@ def step_twelve_outlet(worksheet, outlet_array, outlet_vals_array):
 								thisCell.value = val
 								idx += 1
 
+
 def get_block_range(worksheet, keyword):
 	start_idx = 0
 	end_idx = 0
@@ -525,8 +527,7 @@ def get_block_range(worksheet, keyword):
 		for cell in col:
 			if cell.value == keyword:
 				start_idx = cell.col_idx
-
-	for col in worksheet.iter_cols(min_row=3, max_row=3, min_col=start_idx - 1):
+	for col in worksheet.iter_cols(min_row=3, max_row=3, min_col=start_idx):
 		for cell in col:
 			if cell.value == None:
 				end_idx = cell.col_idx - 1
@@ -536,12 +537,91 @@ def get_block_range(worksheet, keyword):
 		break
 	return(start_idx, end_idx)
 
-def step_thirteen(worksheet):
+def heater_move(worksheet):
 	b_range = get_block_range(worksheet, "Heater")
-	for col in worksheet.iter_cols(min_col=b_range[0], max_col=b_range[1]):
+	b_row = find_row_with_key(worksheet,"Calculated heat duty [MW]")
+	offset = find_row_with_key(worksheet, "Heat MW") - b_row
+	for col in worksheet.iter_cols(min_col=b_range[0], max_col=b_range[1], min_row=b_row, max_row=b_row):
 		for cell in col:
-			if cell.value = 
-			#Breakpt: How do I know for instance that HeatX is a Heater?
+			if not (isinstance(cell.value, str)) and cell.value != None:
+				writeVal = cell.value #Shift it down to right in the Heat MW row 
+				cell.offset(row=offset).value = writeVal
+
+def pump_move(worksheet):
+	p_range = get_block_range(worksheet, "Pump")
+	p_row_start = 0
+	p_row_end = 0
+	for col in worksheet.iter_cols(min_col=p_range[0], max_col=p_range[1]):
+		for cell in col:
+			if cell.value == "Net work required [MW]":
+				p_row_start = cell.row
+			if cell.value == "Work MW":
+				p_row_end = cell.row
+
+	offset = p_row_end - p_row_start
+	for col in worksheet.iter_cols(min_col=p_range[0], max_col=p_range[1], min_row=p_row_start, max_row=p_row_start):
+		for cell in col:
+			if not (isinstance(cell.value, str)) and cell.value != None:
+				writeVal = cell.value #Shift it down to right in the Heat MW row 
+				cell.offset(row=offset).value = writeVal
+
+def compr_move(worksheet):
+	c_range = get_block_range(worksheet, "Compr")
+	c_row_start = 0
+	c_row_end = 0
+	for col in worksheet.iter_cols(min_col=c_range[0], max_col=c_range[1]):
+		for cell in col:
+			if cell.value == "Net work required [MW]":
+				c_row_start = cell.row
+			if cell.value == "Work MW":
+				c_row_end = cell.row
+
+	offset = c_row_end - c_row_start
+	for col in worksheet.iter_cols(min_col=c_range[0], max_col=c_range[1], min_row=c_row_start, max_row=c_row_start):
+		for cell in col:
+			if not (isinstance(cell.value, str)) and cell.value != None:
+				writeVal = cell.value #Shift it down to right in the Heat MW row 
+				cell.offset(row=offset).value = writeVal
+
+def radfrac_move(worksheet):
+	r_range = get_block_range(worksheet, "RadFrac")
+	val1_array = []
+	val2_array = []
+	sum_arr = []
+	val1_row = 0
+	val2_row = 0
+	r_row_end = 0
+	idx = 0
+
+	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1]):
+		for cell in col:
+			if cell.value == "Condenser / top stage heat duty [MW]":
+				val1_row = cell.row
+			if cell.value == "Reboiler heat duty [MW]":
+				val2_row = cell.row
+			if cell.value == "Heat MW":
+				r_row_end = cell.row
+	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1], min_row=val1_row, max_row=val1_row):
+		for cell in col:
+			if not (isinstance(cell.value, str)) and cell.value != None: #A number
+				val1_array.append(cell.value)
+	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1], min_row=val2_row, max_row=val2_row):
+		for cell in col:
+			if not (isinstance(cell.value, str)) and cell.value != None: #A number
+				val2_array.append(cell.value)
+
+	for x in range(len(val1_array)): #Can do this only because val1 and val2 arrays same length
+		sum_arr.append(val1_array[x] + val2_array[x])
+
+	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1], min_row=r_row_end, max_row=r_row_end):
+		for cell in col:
+			cell.value = sum_arr[idx]
+
+def step_thirteen(worksheet):
+	heater_move(worksheet)
+	pump_move(worksheet)
+	compr_move(worksheet)
+	radfrac_move(worksheet)
 
 def main():
 	inputData = get_config_variables()
