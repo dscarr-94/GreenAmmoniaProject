@@ -517,6 +517,32 @@ def step_twelve_outlet(worksheet, outlet_array, outlet_vals_array):
 								thisCell = cell.offset(row=18+idx)
 								thisCell.value = val
 								idx += 1
+
+def get_block_range(worksheet, keyword):
+	start_idx = 0
+	end_idx = 0
+	for col in worksheet.iter_cols(min_row=2, max_row=2):
+		for cell in col:
+			if cell.value == keyword:
+				start_idx = cell.col_idx
+
+	for col in worksheet.iter_cols(min_row=3, max_row=3, min_col=start_idx - 1):
+		for cell in col:
+			if cell.value == None:
+				end_idx = cell.col_idx - 1
+				break
+		else:
+			continue
+		break
+	return(start_idx, end_idx)
+
+def step_thirteen(worksheet):
+	b_range = get_block_range(worksheet, "Heater")
+	for col in worksheet.iter_cols(min_col=b_range[0], max_col=b_range[1]):
+		for cell in col:
+			if cell.value = 
+			#Breakpt: How do I know for instance that HeatX is a Heater?
+
 def main():
 	inputData = get_config_variables()
 	streamWorkbook = inputData["streamBookName"]
@@ -553,19 +579,22 @@ def main():
 		for i in range(1):
 			add_text(overallWS, overallTitle, overall_text_add)
 			wb_block.save(modelWorkbook)
-			pbar.update(50)
+			pbar.update(25)
 			inlet_array = prepare_for_overall_inlet(modifiedWS)
 			inlet_vals_array = prepare_for_overall_inlet_vals(modifiedWS)
 			step_twelve_inlet(overallWS, inlet_array, inlet_vals_array)
+			pbar.update(25)
 			outlet_array = prepare_for_overall_outlet(modifiedWS)
 			outlet_vals_array = prepare_for_overall_outlet_vals(modifiedWS)
 			step_twelve_outlet(overallWS, outlet_array, outlet_vals_array)
+			pbar.update(25)
+			step_thirteen(overallWS)
 			wb_block.save(modelWorkbook)
-			pbar.update(50)
+			pbar.update(25)
 
 if __name__ == '__main__':
 	main()
 
 #Small bug: Does the order of the outlets matter (i.e for C302, Column AZ), does it matter that 
-#outlet 2 is s40 and not s39? Mine are correct but inverse for >= 3 outlets.
+#outlet 2 is s40 and not s39? Mine are correct but inverse for >= 	3 outlets.
 
