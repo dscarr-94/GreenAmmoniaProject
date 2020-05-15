@@ -657,11 +657,10 @@ def step_fourteen(worksheet):
 		spec_arr = []
 
 	for arr in large_arr:
-		sumVal = 0.0
-		print(arr)
+		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
 		for col in arr:
+			sumVal = float(0.0)
 			curr = worksheet[(get_column_letter(col) + "67")].value #Inlet1
-			print(curr)
 			if(curr != None): 
 			 	sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "71")].value #Inlet2
@@ -674,11 +673,9 @@ def step_fourteen(worksheet):
 			if(curr != None): 
 			 	sumVal += curr
 			curr = worksheet[(get_column_letter(col) + "83")].value #Outlet1
-			print(curr)
 			if(curr != None): 
 			 	sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "87")].value #Outlet2
-			print(curr)
 			if(curr != None): 
 			 	sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "91")].value #Outlet3
@@ -693,7 +690,14 @@ def step_fourteen(worksheet):
 			curr = worksheet[(get_column_letter(col) + "103")].value #Outlet6
 			if(curr != None): 
 			 	sumVal -= curr
-			worksheet[(get_column_letter(col) + "108")].value = sumVal #Write Cell - i.e Mass Balance 
+			writeCell = worksheet[(get_column_letter(col) + "108")].value
+			if(abs(sumVal <= 10)):
+				writeCell = sumVal #Write Cell - i.e Mass Balance 
+			else:	
+				print("MB_Error, Mass Balance is: " + str(sumVal))
+				print("See block: " + current_block_name)
+				return 0
+	return 1
 
 def main():
 	inputData = get_config_variables()
@@ -741,8 +745,10 @@ def main():
 			step_twelve_outlet(overallWS, outlet_array, outlet_vals_array)
 			pbar.update(25)
 			step_thirteen(overallWS)
-			step_fourteen(overallWS)
+			check = step_fourteen(overallWS)
 			wb_block.save(modelWorkbook)
+			if(check == 0):
+				sys.exit()
 			pbar.update(25)
 
 if __name__ == '__main__':
