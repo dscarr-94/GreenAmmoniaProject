@@ -586,7 +586,6 @@ def radfrac_move(worksheet):
 	r_range = get_block_range(worksheet, "RadFrac")
 	val1_array = []
 	val2_array = []
-	sum_arr = []
 	val1_row = 0
 	val2_row = 0
 	r_row_end = 0
@@ -610,17 +609,19 @@ def radfrac_move(worksheet):
 				val2_array.append(cell.value)
 
 	for x in range(len(val1_array)): #Can do this only because val1 and val2 arrays same length
-		sum_arr.append(val1_array[x] + val2_array[x])
+		curr = val1_array[x]
+		val1_array[x] = val2_array[x] + curr #Mutate in place save space
 
 	for col in worksheet.iter_cols(min_col=r_range[0] + 1, max_col=r_range[1], min_row=r_row_end, max_row=r_row_end):
 		for cell in col:
-			cell.value = sum_arr[idx]
+			cell.value = val1_array[idx]
+		idx += 1
 
 def step_thirteen(worksheet):
 	heater_move(worksheet)
 	pump_move(worksheet)
 	compr_move(worksheet)
-	radfrac_move(worksheet) #BUG HERE
+	radfrac_move(worksheet) 
 
 def get_block_arr(worksheet):
 	return_arr = []
@@ -807,5 +808,3 @@ if __name__ == '__main__':
 
 #Small bug#2: Cell Y108 says 0 but the real calculation is 4x10^-11. Should I put the "real" val or 
 # Assume that anythign less than sayd 4E-7 is equivelnt to zero? For now keeping real val
-
-#TODO: RadFrac Heat MW Row has bug, incorrect vals
