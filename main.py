@@ -746,6 +746,48 @@ def step_fourteen(worksheet):
 				print("MB_Error, Energy Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
 				return 0
+
+	for arr in large_arr:
+		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
+		for col in arr:
+			sumVal = float(0.0)
+			curr = worksheet[(get_column_letter(col) + "69")].value #Inlet1
+			if(curr != None): 
+			 	sumVal += (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "73")].value #Inlet2
+			if(curr != None): 
+			 	sumVal += (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "77")].value #Inlet3
+			if(curr != None): 
+			 	sumVal += (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "81")].value #Inlet4
+			if(curr != None): 
+			 	sumVal += (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "85")].value #Outlet1
+			if(curr != None): 
+			 	sumVal -= (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "89")].value #Outlet2
+			if(curr != None): 
+			 	sumVal -= (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "93")].value #Outlet3
+			if(curr != None): 
+			 	sumVal -= (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "97")].value #Outlet4
+			if(curr != None): 
+			 	sumVal -= (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "101")].value #Outlet5
+			if(curr != None): 
+			 	sumVal -= (float(curr) * -1)
+			curr = worksheet[(get_column_letter(col) + "105")].value #Outlet6
+			if(curr != None): 
+			 	sumVal -= (float(curr) * -1)
+			writeCell = worksheet[(get_column_letter(col) + "110")] 
+			if(abs(sumVal >= -1)):
+				writeCell.value = sumVal #Write Cell - i.e Entropy generation
+			else:	
+				print("Sgen_Error, Entropy Balance is: " + str(sumVal))
+				print("See block: " + current_block_name)
+				return 0
 	return 1
 
 def main():
