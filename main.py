@@ -620,7 +620,7 @@ def step_thirteen(worksheet):
 	heater_move(worksheet)
 	pump_move(worksheet)
 	compr_move(worksheet)
-	radfrac_move(worksheet)
+	radfrac_move(worksheet) #BUG HERE
 
 def get_block_arr(worksheet):
 	return_arr = []
@@ -665,13 +665,13 @@ def step_fourteen(worksheet):
 			 	sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "71")].value #Inlet2
 			if(curr != None): 
-			 	sumVal += curr
+			 	sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "75")].value #Inlet3
 			if(curr != None): 
-			 	sumVal += curr
+			 	sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "79")].value #Inlet4
 			if(curr != None): 
-			 	sumVal += curr
+			 	sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "83")].value #Outlet1
 			if(curr != None): 
 			 	sumVal -= float(curr)
@@ -680,21 +680,69 @@ def step_fourteen(worksheet):
 			 	sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "91")].value #Outlet3
 			if(curr != None): 
-			 	sumVal -= curr
+			 	sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "95")].value #Outlet4
 			if(curr != None): 
-			 	sumVal -= curr
+			 	sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "99")].value #Outlet5
 			if(curr != None): 
-			 	sumVal -= curr
+			 	sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "103")].value #Outlet6
 			if(curr != None): 
-			 	sumVal -= curr
-			writeCell = worksheet[(get_column_letter(col) + "108")].value
+			 	sumVal -= float(curr)
+			writeCell = worksheet[(get_column_letter(col) + "108")]
 			if(abs(sumVal <= 10)):
-				writeCell = sumVal #Write Cell - i.e Mass Balance 
+				writeCell.value = sumVal #Write Cell - i.e Mass Balance 
 			else:	
 				print("MB_Error, Mass Balance is: " + str(sumVal))
+				print("See block: " + current_block_name)
+				return 0
+
+	for arr in large_arr:
+		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
+		for col in arr:
+			sumVal = float(0.0) #Debug
+			curr = worksheet[(get_column_letter(col) + "68")].value #Inlet1
+			if(curr != None): 
+			 	sumVal += float(curr)
+			curr = worksheet[(get_column_letter(col) + "72")].value #Inlet2
+			if(curr != None): 
+			 	sumVal += float(curr)
+			curr = worksheet[(get_column_letter(col) + "76")].value #Inlet3
+			if(curr != None): 
+			 	sumVal += float(curr)
+			curr = worksheet[(get_column_letter(col) + "80")].value #Inlet4
+			if(curr != None): 
+			 	sumVal += float(curr)
+			curr = worksheet[(get_column_letter(col) + "84")].value #Outlet1
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "88")].value #Outlet2
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "92")].value #Outlet3
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "96")].value #Outlet4
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "100")].value #Outlet5
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "104")].value #Outlet6
+			if(curr != None): 
+			 	sumVal -= float(curr)
+			curr = worksheet[(get_column_letter(col) + "106")].value #Work MW
+			if(curr != None): 
+			 	sumVal += float(curr)
+			curr = worksheet[(get_column_letter(col) + "107")].value #Heat MW
+			if(curr != None): 
+			 	sumVal += float(curr)
+			writeCell = worksheet[(get_column_letter(col) + "109")]
+			if(abs(sumVal <= 1)):
+				writeCell.value = sumVal #Write Cell - i.e Energy Balance 
+			else:	
+				print("MB_Error, Energy Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
 				return 0
 	return 1
@@ -760,3 +808,4 @@ if __name__ == '__main__':
 #Small bug#2: Cell Y108 says 0 but the real calculation is 4x10^-11. Should I put the "real" val or 
 # Assume that anythign less than sayd 4E-7 is equivelnt to zero? For now keeping real val
 
+#TODO: RadFrac Heat MW Row has bug, incorrect vals
