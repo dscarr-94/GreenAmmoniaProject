@@ -20,7 +20,7 @@ def get_config_variables():
 	with open('config.yaml') as f:
 		data = yaml.load(f, Loader=yaml.FullLoader)
 		return data
-
+#Copies the current worksheet into a new worksheet, returns worksheet
 def copy_worksheet(workbook, sheetName):
 	source = workbook.active
 	target = workbook.copy_worksheet(source)
@@ -28,6 +28,7 @@ def copy_worksheet(workbook, sheetName):
 	return target
 
 #NOTE: This only works for the first column!!
+#Returns the row (in column 1) equal to the key string, returns int
 def find_row_with_key(worksheet, key):
 	rowNum = 0 #loop through and find row for key
 	for row in worksheet.iter_rows(min_row=1, max_row=worksheet.max_row, min_col=1, max_col=1, values_only=True):
@@ -38,6 +39,7 @@ def find_row_with_key(worksheet, key):
 				   return rowNum
 	return 0
 
+#Removes all rows below "Mass Flows"
 def removeRowsBelow(worksheet):
 	rowNum = 0 #loop through and find row for mass flows
 	massFlowArr = []
@@ -48,11 +50,11 @@ def removeRowsBelow(worksheet):
 			   massFlowArr.append(rowNum) #More than one intance of mass flow in sheet
 	worksheet.delete_rows(massFlowArr[0] + 1, worksheet.max_row) #Delete from first mass flow cell down
 
+#Remove all the rows that have zero values in them throughout
 def removeZeroRows(worksheet):
 	maxRow = worksheet.max_row
 	maxCol = worksheet.max_column
 	rowNum = 3
-	
 	for row in worksheet.iter_rows(min_col=3, max_col=maxCol, min_row=3, max_row=maxRow, values_only=True):
 		allString = False
 		zeroFlag = False #Assume all zero
@@ -68,18 +70,21 @@ def removeZeroRows(worksheet):
 			worksheet.delete_rows(rowNum, 1)
 		rowNum += 1
 
+#Adds title to the worksheet
 def addTitle(worksheet, title):
 	worksheet.insert_rows(1)
 	worksheet['A1'] = title
 
+#Adds the Section In/Out values and unmerges the cells
 def addInOutRows(worksheet):
 	worksheet.insert_rows(2)
 	worksheet['A2'] = "Section In"
 	worksheet.insert_rows(3)
 	worksheet['A3'] = "Section Out"
-	worksheet.merge_cells('A2:CO2') #WHAT A CRAZY FIX WHY
-	worksheet.unmerge_cells('A2:CO2') #Three hours of my life gone
+	worksheet.merge_cells('A2:CO2') #Bug fix, must merge and unmerge to just unmerge
+	worksheet.unmerge_cells('A2:CO2') 
 
+#Performs and writes the entropy calculations to the streams worksheet
 def entropyCalculations(worksheet):
 	rowIdx = 0
 	maxRow = worksheet.max_row
@@ -103,9 +108,7 @@ def entropyCalculations(worksheet):
 				worksheet[unitCell] = "MW"
 		if(flag):
 			break
-
 	conversionFactor = 3600 * 1000
-
 	stream_molar_flow = find_row_with_key(worksheet, "Mole Flows")
 	stream_molar_flow_units = "B" + str(stream_molar_flow)
 	stream_molar_entropy = find_row_with_key(worksheet, "Molar Entropy")
@@ -148,6 +151,7 @@ def find_blank(worksheet):
 				return cell.column_letter
 				#worksheet.delete_cols(cell.column_letter,1)
 
+#Removes columns that have both in and out values in respective columns
 def removeColumns(worksheet):
 	to_idx = find_row_with_key(worksheet, "To")
 	from_idx = find_row_with_key(worksheet, "From")
@@ -159,9 +163,10 @@ def removeColumns(worksheet):
 			from_cell = str(cell.column_letter) + str(from_idx)
 			if worksheet[to_cell].value != None and worksheet[from_cell].value != None:
 				delArray.append(column_index_from_string(cell.column_letter))
-	for i in reversed(delArray):
+	for i in reversed(delArray): #Must delete in reversed array as it changes excel sheet during manipulation
 		worksheet.delete_cols(i,1)
 	
+#Writes In and Our to the correct columns
 def addInOutValues(worksheet):
 	to_idx = find_row_with_key(worksheet, "To")
 	from_idx = find_row_with_key(worksheet, "From")
@@ -178,6 +183,7 @@ def addInOutValues(worksheet):
 
 	worksheet.delete_cols(endCol, worksheet.max_column) 
 
+#Calculates and writes the sum values as well as mass flows
 def calculate_balance(worksheet):
 	enthalpy_flow = find_row_with_key(worksheet, "Enthalpy Flow")
 	enthalpy_sum = 0 #Initialize counter
@@ -787,7 +793,6 @@ def step_fourteen(worksheet):
 			else:	
 				print("Sgen_Error, Entropy Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
-				return 0
 	return 1
 
 def main():
