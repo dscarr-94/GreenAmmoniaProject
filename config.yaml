@@ -1,7 +1,7 @@
 streamBookName: "AspenStreams05182020.xlsx"
 modelBookName: "AspenModels05182020.xlsx"
-streamTitle: "ICI No HI 8-16R"
-modelTitle: "ICI No HI 8-16R"
+streamTitle: "Example streams 5-18"
+modelTitle: "Example models 5-18"
 calculationBlocks: [Heater, HXFlux, Flash2, RPlug]
 computer: [preperation, s1,s2,s3]
 test: 3

@@ -40,7 +40,7 @@ def find_row_with_key(worksheet, key):
 	return 0
 
 #Removes all rows below "Mass Flows"
-def removeRowsBelow(worksheet):
+def remove_rows_below(worksheet):
 	rowNum = 0 #loop through and find row for mass flows
 	massFlowArr = []
 	for row in worksheet.iter_rows(min_row=1, max_row=worksheet.max_row, min_col=1, max_col=1, values_only=True):
@@ -51,7 +51,7 @@ def removeRowsBelow(worksheet):
 	worksheet.delete_rows(massFlowArr[0] + 1, worksheet.max_row) #Delete from first mass flow cell down
 
 #Remove all the rows that have zero values in them throughout
-def removeZeroRows(worksheet):
+def remove_zero_rows(worksheet):
 	maxRow = worksheet.max_row
 	maxCol = worksheet.max_column
 	rowNum = 3
@@ -258,8 +258,8 @@ def step_six(worksheet):
 	worksheet.delete_rows(find_row_with_key(worksheet, "Mass Density"), 1)
 	worksheet.delete_rows(find_row_with_key(worksheet, "Molar Liquid Fraction"), 1)
 	worksheet.delete_rows(find_row_with_key(worksheet, "Molar Solid Fraction"), 1)
-	removeRowsBelow(worksheet)
-	removeZeroRows(worksheet)
+	remove_rows_below(worksheet)
+	remove_zero_rows(worksheet)
 	enthalpy_flow = find_row_with_key(worksheet, "Enthalpy Flow")
 	enthalpy_flow_units = "B" + str(enthalpy_flow)
 	if(worksheet[enthalpy_flow_units].value == "W"):
@@ -855,3 +855,5 @@ if __name__ == '__main__':
 
 #Small bug#2: Cell Y108 says 0 but the real calculation is 4x10^-11. Should I put the "real" val or 
 # Assume that anythign less than sayd 4E-7 is equivelnt to zero? For now keeping real val
+
+#Major question #1: The temperature row in 111 is yet to be implemented, should I move forward with this?
