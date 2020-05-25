@@ -1,0 +1,47 @@
+Block Type
+Block Name
+Inlet Stream 1 Name
+Inlet Stream 1 Mass Flow kg/hr
+Inlet Stream 1 Enthalpy Flow MW
+Inlet Stream 1 Entropy Flow kW/K
+Inlet Stream 2 Name
+Inlet Stream 2 Mass Flow kg/hr
+Inlet Stream 2 Enthalpy Flow MW
+Inlet Stream 2 Entropy Flow kW/K
+Inlet Stream 3 Name
+Inlet Stream 3 Mass Flow kg/hr
+Inlet Stream 3 Enthalpy Flow MW
+Inlet Stream 3 Entropy Flow kW/K
+Inlet Stream 4 Name
+Inlet Stream 4 Mass Flow kg/hr
+Inlet Stream 4 Enthalpy Flow MW
+Inlet Stream 4 Entropy Flow kW/K
+Outlet Stream 1 Name
+Outlet Stream 1 Mass Flow kg/hr
+Outlet Stream 1 Enthalpy Flow MW
+Outlet Stream 1 Entropy Flow kW/K
+Outlet Stream 2 Name
+Outlet Stream 2 Mass Flow kg/hr
+Outlet Stream 2 Enthalpy Flow MW
+Outlet Stream 2 Entropy Flow kW/K
+Outlet Stream 3 Name
+Outlet Stream 3 Mass Flow kg/hr
+Outlet Stream 3 Enthalpy Flow MW
+Outlet Stream 3 Entropy Flow kW/K
+Outlet Stream 4 Name
+Outlet Stream 4 Mass Flow kg/hr
+Outlet Stream 4 Enthalpy Flow MW
+Outlet Stream 4 Entropy Flow kW/K
+Outlet Stream 5 Name
+Outlet Stream 5 Mass Flow kg/hr
+Outlet Stream 5 Enthalpy Flow MW
+Outlet Stream 5 Entropy Flow kW/K
+Outlet Stream 6 Name
+Outlet Stream 6 Mass Flow kg/hr
+Outlet Stream 6 Enthalpy Flow MW
+Outlet Stream 6 Entropy Flow kW/K
+Work MW
+Heat MW
+Mass balance kg/hr
+Energy Balance MW
+Entropy Generation kW/K
