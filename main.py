@@ -4,6 +4,7 @@ from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 from openpyxl.styles import Color, PatternFill, Font, Border, colors
 import time
 import sys
+import math
 from tqdm import tqdm
 YELLOW_HIGHLIGHT = PatternFill(start_color='ffff00',
 				   end_color='ffff00',
@@ -15,11 +16,19 @@ ORANGE_HIGHLIGHT = PatternFill(start_color='ffa500',
 				   end_color='ffa500',
 				   fill_type='solid')
 
+#Round to two sig figs 
+def round_val(num):
+	if(num < .001 and num > .001):
+		return 0.0
+	else:
+		return num
+
 #Retrieves data from the YAML file and returns a dictionary with the vals.
 def get_config_variables():
 	with open('config.yaml') as f:
 		data = yaml.load(f, Loader=yaml.FullLoader)
 		return data
+
 #Copies the current worksheet into a new worksheet, returns worksheet
 def copy_worksheet(workbook, sheetName):
 	source = workbook.active
@@ -669,37 +678,37 @@ def step_fourteen(worksheet):
 			sumVal = float(0.0)
 			curr = worksheet[(get_column_letter(col) + "67")].value #Inlet1
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "71")].value #Inlet2
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "75")].value #Inlet3
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "79")].value #Inlet4
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "83")].value #Outlet1
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "87")].value #Outlet2
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "91")].value #Outlet3
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "95")].value #Outlet4
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "99")].value #Outlet5
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "103")].value #Outlet6
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			writeCell = worksheet[(get_column_letter(col) + "108")]
 			if(abs(sumVal <= 10)):
-				writeCell.value = sumVal #Write Cell - i.e Mass Balance 
+				writeCell.value = round_val(sumVal) #Write Cell - i.e Mass Balance 
 			else:	
 				print("MB_Error, Mass Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
@@ -711,43 +720,43 @@ def step_fourteen(worksheet):
 			sumVal = float(0.0) #Debug
 			curr = worksheet[(get_column_letter(col) + "68")].value #Inlet1
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "72")].value #Inlet2
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "76")].value #Inlet3
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "80")].value #Inlet4
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "84")].value #Outlet1
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "88")].value #Outlet2
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "92")].value #Outlet3
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "96")].value #Outlet4
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "100")].value #Outlet5
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "104")].value #Outlet6
 			if(curr != None): 
-			 	sumVal -= float(curr)
+				sumVal -= float(curr)
 			curr = worksheet[(get_column_letter(col) + "106")].value #Work MW
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			curr = worksheet[(get_column_letter(col) + "107")].value #Heat MW
 			if(curr != None): 
-			 	sumVal += float(curr)
+				sumVal += float(curr)
 			writeCell = worksheet[(get_column_letter(col) + "109")]
 			if(abs(sumVal <= 1)):
-				writeCell.value = sumVal #Write Cell - i.e Energy Balance 
+				writeCell.value = round_val(sumVal) #Write Cell - i.e Energy Balance 
 			else:	
 				print("MB_Error, Energy Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
@@ -759,41 +768,102 @@ def step_fourteen(worksheet):
 			sumVal = float(0.0)
 			curr = worksheet[(get_column_letter(col) + "69")].value #Inlet1
 			if(curr != None): 
-			 	sumVal += (float(curr) * -1)
+				sumVal += (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "73")].value #Inlet2
 			if(curr != None): 
-			 	sumVal += (float(curr) * -1)
+				sumVal += (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "77")].value #Inlet3
 			if(curr != None): 
-			 	sumVal += (float(curr) * -1)
+				sumVal += (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "81")].value #Inlet4
 			if(curr != None): 
-			 	sumVal += (float(curr) * -1)
+				sumVal += (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "85")].value #Outlet1
 			if(curr != None): 
-			 	sumVal -= (float(curr) * -1)
+				sumVal -= (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "89")].value #Outlet2
 			if(curr != None): 
-			 	sumVal -= (float(curr) * -1)
+				sumVal -= (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "93")].value #Outlet3
 			if(curr != None): 
-			 	sumVal -= (float(curr) * -1)
+				sumVal -= (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "97")].value #Outlet4
 			if(curr != None): 
-			 	sumVal -= (float(curr) * -1)
+				sumVal -= (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "101")].value #Outlet5
 			if(curr != None): 
-			 	sumVal -= (float(curr) * -1)
+				sumVal -= (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "105")].value #Outlet6
 			if(curr != None): 
-			 	sumVal -= (float(curr) * -1)
+				sumVal -= (float(curr) * -1)
 			writeCell = worksheet[(get_column_letter(col) + "110")] 
 			if(abs(sumVal >= -1)):
-				writeCell.value = sumVal #Write Cell - i.e Entropy generation
+				writeCell.value = round_val(sumVal) #Write Cell - i.e Entropy generation
 			else:	
+				writeCell.value = round_val(sumVal) #Manual bypass, should throw error according to specs
 				print("Sgen_Error, Entropy Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
+	
+	mod_radfrac(worksheet, large_arr)
+	add_temperature(worksheet)
 	return 1
+
+def mod_radfrac(worksheet, large_arr):
+	rad_arr = []
+	for arr in large_arr:
+		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
+		if(current_block_name == "RadFrac"):
+			rad_arr = arr
+
+	for col in worksheet.iter_cols(min_col=rad_arr[0]-1,max_col=rad_arr[0]-1, min_row=111, max_row=111):
+		for cell in col:
+			cell.value = "Heat In, MW"
+			cell.fill = GREEN_HIGHLIGHT
+
+	for col in worksheet.iter_cols(min_col=rad_arr[0]-1,max_col=rad_arr[0]-1, min_row=112, max_row=112):
+		for cell in col:
+			cell.value = "Heat Out, MW"
+			cell.fill = GREEN_HIGHLIGHT
+
+	for col in worksheet.iter_cols(min_col=rad_arr[0],max_col=rad_arr[len(rad_arr)-1], min_row=33, max_row=33): #Reboiler heat
+		for cell in col:
+			temp = cell.value
+			print(temp)
+			cell.offset(row=111-33).value = temp
+
+	for col in worksheet.iter_cols(min_col=rad_arr[0],max_col=rad_arr[len(rad_arr)-1], min_row=27, max_row=27): #Condensor heat duty
+		for cell in col:
+			temp = cell.value
+			cell.offset(row=112-27).value = temp
+
+	for col in worksheet.iter_cols(min_col=rad_arr[0],max_col=rad_arr[len(rad_arr)-1], min_row=110, max_row=110): 
+		for cell in col:
+			val1_off = cell.offset(row=32-110).value + 273.15
+			val1 = cell.offset(row=1).value / val1_off
+			val2_off = cell.offset(row=25-110).value + 273.15
+			val2 = cell.offset(row=2).value / val2_off
+			temp = cell.value - (val1 + val2) * 1000
+			cell.value = temp
+
+
+def add_temperature(worksheet):
+	temp_row = find_row_with_key(worksheet, "Calculated temperature [C]")
+	entropy_row = find_row_with_key(worksheet,"Entropy Generation kW/K")
+	heat_row = find_row_with_key(worksheet,"Heat MW")
+
+	worksheet['A111'].value = "Temperature, K"
+	worksheet['A111'].fill = GREEN_HIGHLIGHT
+
+	for col in worksheet.iter_cols(min_col=2,max_col=5, min_row=temp_row, max_row=temp_row):
+		for cell in col:
+			if not (isinstance(cell.value, str)) and cell.value != None:
+				temp = cell.value + 273.15
+				cell.offset(row=111 - temp_row).value = temp
+
+	for col in worksheet.iter_cols(min_col=2,max_col=5, min_row=entropy_row, max_row=entropy_row):
+		for cell in col:
+			temp = cell.value
+			cell.value = temp - cell.offset(row=(heat_row-entropy_row)).value/cell.offset(row=1).value * 1000
 
 def main():
 	inputData = get_config_variables()
@@ -849,11 +919,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
-#Small bug: Does the order of the outlets matter (i.e for C302, Column AZ), does it matter that 
-#outlet 2 is s40 and not s39? Mine are correct but inverse for >= 	3 outlets.
-
-#Small bug#2: Cell Y108 says 0 but the real calculation is 4x10^-11. Should I put the "real" val or 
-# Assume that anythign less than sayd 4E-7 is equivelnt to zero? For now keeping real val
-
-#Major question #1: The temperature row in 111 is yet to be implemented, should I move forward with this?
