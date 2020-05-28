@@ -828,7 +828,6 @@ def mod_radfrac(worksheet, large_arr):
 	for col in worksheet.iter_cols(min_col=rad_arr[0],max_col=rad_arr[len(rad_arr)-1], min_row=33, max_row=33): #Reboiler heat
 		for cell in col:
 			temp = cell.value
-			print(temp)
 			cell.offset(row=111-33).value = temp
 
 	for col in worksheet.iter_cols(min_col=rad_arr[0],max_col=rad_arr[len(rad_arr)-1], min_row=27, max_row=27): #Condensor heat duty
@@ -916,6 +915,6 @@ def main():
 			if(check == 0):
 				sys.exit()
 			pbar.update(25)
-
+    print("Succesfull completion of program, please open the provided workbooks to see modifications\n")
 if __name__ == '__main__':
 	main()
