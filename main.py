@@ -915,6 +915,6 @@ def main():
 			if(check == 0):
 				sys.exit()
 			pbar.update(25)
-    print("Succesfull completion of program, please open the provided workbooks to see modifications\n")
+	print("Successful completion of program, please open the provided workbooks to see modifications\n")
 if __name__ == '__main__':
 	main()
