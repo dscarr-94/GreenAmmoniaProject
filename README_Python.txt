@@ -30,7 +30,7 @@ NOTE: All user-requested parameters can conveniently be found in a file titled c
 ## Program Execution
 To execute the script, type into your command line the following instruction
 I manually turn off warnings, you could keep it but they are useless and mess
-with the progress bar :) 
+with the progress bar. If nothing happens, try running with python instead of python3
 
 ```
 python3 -Wd main.py
