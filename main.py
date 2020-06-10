@@ -118,6 +118,7 @@ def entropyCalculations(worksheet):
 		if(flag):
 			break
 	conversionFactor = 3600 * 1000
+	conversionFactorSeconds = 1000
 	stream_molar_flow = find_row_with_key(worksheet, "Mole Flows")
 	stream_molar_flow_units = "B" + str(stream_molar_flow)
 	stream_molar_entropy = find_row_with_key(worksheet, "Molar Entropy")
@@ -132,6 +133,9 @@ def entropyCalculations(worksheet):
 				if(worksheet[stream_molar_flow_units].value == "kmol/hr" and 
 					worksheet[stream_molar_entropy_units].value == "J/kmol-K"):
 					calculatedValue = (firstValue.value * secondValue.value)/conversionFactor
+				elif(worksheet[stream_molar_flow_units].value == "kmol/sec" and 
+					worksheet[stream_molar_entropy_units].value == "J/kmol-K"):
+					calculatedValue = (firstValue.value * secondValue.value)/conversionFactorSeconds
 				else:
 					calculatedValue = 1
 					print("Unit error in calculating Entropy Flow, required: \n")
@@ -164,7 +168,12 @@ def find_blank(worksheet):
 def removeColumns(worksheet):
 	to_idx = find_row_with_key(worksheet, "To")
 	from_idx = find_row_with_key(worksheet, "From")
-	endCol = column_index_from_string(find_blank(worksheet))
+	x = find_blank(worksheet)
+	if(x == None):
+		endCol = worksheet.max_column+1
+	else:
+		endCol = column_index_from_string(x)
+
 	delArray = []
 	for col in worksheet.iter_cols(min_row=to_idx, max_row=to_idx, min_col=3, max_col=endCol):
 		for cell in col:
@@ -172,6 +181,7 @@ def removeColumns(worksheet):
 			from_cell = str(cell.column_letter) + str(from_idx)
 			if worksheet[to_cell].value != None and worksheet[from_cell].value != None:
 				delArray.append(column_index_from_string(cell.column_letter))
+
 	for i in reversed(delArray): #Must delete in reversed array as it changes excel sheet during manipulation
 		worksheet.delete_cols(i,1)
 	
@@ -179,7 +189,11 @@ def removeColumns(worksheet):
 def addInOutValues(worksheet):
 	to_idx = find_row_with_key(worksheet, "To")
 	from_idx = find_row_with_key(worksheet, "From")
-	endCol = column_index_from_string(find_blank(worksheet))
+	x = find_blank(worksheet)
+	if(x == None):
+		endCol = worksheet.max_column
+	else:
+		endCol = column_index_from_string(x)
 	for col in worksheet.iter_cols(min_row=to_idx, max_row=to_idx, min_col=3, max_col=endCol):
 		for cell in col:
 			write_cell = str(cell.column_letter) + str(1)
@@ -215,9 +229,11 @@ def calculate_balance(worksheet):
 			in_out_row = str(cell.column_letter) + "1"
 			if worksheet[in_out_row].value == "In": #Check if the first row in this col has In or Out
 				entropy_sum += cell.value 			#If In, Add to the sum
+				# print("Plus: " + str(cell.value))
 			if worksheet[in_out_row].value == "Out":
 				entropy_sum -= cell.value 			#If out, Subtract from sum
-	lastCol[0].value = entropy_sum
+				# print("Minus: " + str(cell.value))
+	lastCol[0].value = entropy_sum * -1 #Bug: Negative vals calculated unsure why
 	lastCol[0].fill = YELLOW_HIGHLIGHT
 
 	exergy_flow = find_row_with_key(worksheet, "Exergy Flow")
@@ -230,7 +246,7 @@ def calculate_balance(worksheet):
 				exergy_sum += cell.value 			#If In, Add to the sum
 			if worksheet[in_out_row].value == "Out":
 				exergy_sum -= cell.value 			#If out, Subtract from sum
-	lastCol[0].value = exergy_sum
+	lastCol[0].value = exergy_sum * -1
 	lastCol[0].fill = YELLOW_HIGHLIGHT
 	worksheet[(str((lastCol[0]).column_letter) + "1")].value = "Balances" #Convoluted, just add title to cell
 
@@ -271,8 +287,8 @@ def step_six(worksheet):
 	remove_zero_rows(worksheet)
 	enthalpy_flow = find_row_with_key(worksheet, "Enthalpy Flow")
 	enthalpy_flow_units = "B" + str(enthalpy_flow)
-	if(worksheet[enthalpy_flow_units].value == "W"):
-		print("Enthalpy Flow in Watts, converting to MW")
+	if(worksheet[enthalpy_flow_units].value == "Watt"):
+		# print("Enthalpy Flow in Watts, converting to MW")
 		for col in worksheet.iter_cols(min_col=3, max_col=worksheet.max_column, 
 				min_row=enthalpy_flow, max_row=enthalpy_flow):
 			if(col[0].value != None):
@@ -420,7 +436,6 @@ def prepare_for_overall_outlet_vals(worksheet):
 						cell.offset(row=entropy_flow_row).value)]
 	return return_vals_dict
 
-#Pretty neat algorithm here if I do say so myself
 def step_twelve_inlet(worksheet, inlet_array, inlet_vals_array):
 	for col in worksheet.iter_cols(min_row=65, max_row=65,min_col=2):
 		for cell in col:
@@ -552,22 +567,41 @@ def get_block_range(worksheet, keyword):
 	return(start_idx, end_idx)
 
 def heater_move(worksheet):
+	Watt_f = 0
+	MW_f = 0
 	b_range = get_block_range(worksheet, "Heater")
-	b_row = find_row_with_key(worksheet,"Calculated heat duty [MW]")
+	if(find_row_with_key(worksheet,"Calculated heat duty [MW]") == 0):
+		Watt_f = 1
+		b_row = find_row_with_key(worksheet,"Calculated heat duty [Watt]")
+	else:
+		MW_f = 1
+		b_row = find_row_with_key(worksheet,"Calculated heat duty [MW]")
+
 	offset = find_row_with_key(worksheet, "Heat MW") - b_row
 	for col in worksheet.iter_cols(min_col=b_range[0], max_col=b_range[1], min_row=b_row, max_row=b_row):
 		for cell in col:
 			if not (isinstance(cell.value, str)) and cell.value != None:
-				writeVal = cell.value #Shift it down to right in the Heat MW row 
+				if(MW_f == 1):
+					writeVal = cell.value #Shift it down to right in the Heat MW row 
+				elif(Watt_f):
+					print("here")
+					writeVal = cell.value /1000000#Shift it down to right in the Heat MW row 
+				else:
+					print("Unknown heat unit, possible error line %d",cell.offset(row=offset))
+					writeVal = cell.value #Shift it down to right in the Heat MW row 
 				cell.offset(row=offset).value = writeVal
 
 def pump_move(worksheet):
 	p_range = get_block_range(worksheet, "Pump")
 	p_row_start = 0
 	p_row_end = 0
+	conv_flag = 0
 	for col in worksheet.iter_cols(min_col=p_range[0], max_col=p_range[1]):
 		for cell in col:
 			if cell.value == "Net work required [MW]":
+				p_row_start = cell.row
+			if cell.value == "Net work required [Watt]":
+				conv_flag = 1
 				p_row_start = cell.row
 			if cell.value == "Work MW":
 				p_row_end = cell.row
@@ -577,15 +611,22 @@ def pump_move(worksheet):
 		for cell in col:
 			if not (isinstance(cell.value, str)) and cell.value != None:
 				writeVal = cell.value #Shift it down to right in the Heat MW row 
-				cell.offset(row=offset).value = writeVal
+				if(conv_flag):
+					cell.offset(row=offset).value = writeVal / 1000000
+				else:
+					cell.offset(row=offset).value = writeVal
 
 def compr_move(worksheet):
 	c_range = get_block_range(worksheet, "Compr")
 	c_row_start = 0
 	c_row_end = 0
+	conv_flag = 0
 	for col in worksheet.iter_cols(min_col=c_range[0], max_col=c_range[1]):
 		for cell in col:
 			if cell.value == "Net work required [MW]":
+				c_row_start = cell.row
+			if cell.value == "Net work required [Watt]":
+				conv_flag = 1
 				c_row_start = cell.row
 			if cell.value == "Work MW":
 				c_row_end = cell.row
@@ -595,7 +636,10 @@ def compr_move(worksheet):
 		for cell in col:
 			if not (isinstance(cell.value, str)) and cell.value != None:
 				writeVal = cell.value #Shift it down to right in the Heat MW row 
-				cell.offset(row=offset).value = writeVal
+				if(conv_flag):
+					cell.offset(row=offset).value = writeVal / 1000000
+				else:
+					cell.offset(row=offset).value = writeVal
 
 def radfrac_move(worksheet):
 	r_range = get_block_range(worksheet, "RadFrac")
@@ -605,23 +649,36 @@ def radfrac_move(worksheet):
 	val2_row = 0
 	r_row_end = 0
 	idx = 0
-
+	cflag1 = 0
+	cflag2 = 0
 	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1]):
 		for cell in col:
 			if cell.value == "Condenser / top stage heat duty [MW]":
 				val1_row = cell.row
+			if cell.value == "Condenser / top stage heat duty [Watt]":
+				cflag1 = 1
+				val1_row = cell.row
 			if cell.value == "Reboiler heat duty [MW]":
+				val2_row = cell.row
+			if cell.value == "Reboiler heat duty [Watt]":
+				cflag2 = 1
 				val2_row = cell.row
 			if cell.value == "Heat MW":
 				r_row_end = cell.row
 	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1], min_row=val1_row, max_row=val1_row):
 		for cell in col:
 			if not (isinstance(cell.value, str)) and cell.value != None: #A number
-				val1_array.append(cell.value)
+				if(cflag1):
+					val1_array.append(cell.value/1000000)
+				else:
+					val1_array.append(cell.value)
 	for col in worksheet.iter_cols(min_col=r_range[0], max_col=r_range[1], min_row=val2_row, max_row=val2_row):
 		for cell in col:
 			if not (isinstance(cell.value, str)) and cell.value != None: #A number
-				val2_array.append(cell.value)
+				if(cflag2):
+					val2_array.append(cell.value/1000000)
+				else:
+					val2_array.append(cell.value)
 
 	for x in range(len(val1_array)): #Can do this only because val1 and val2 arrays same length
 		curr = val1_array[x]
@@ -710,9 +767,10 @@ def step_fourteen(worksheet):
 			if(abs(sumVal <= 10)):
 				writeCell.value = round_val(sumVal) #Write Cell - i.e Mass Balance 
 			else:	
+				writeCell.value = round_val(sumVal) #Write Cell - i.e Mass Balance 
 				print("MB_Error, Mass Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
-				return 0
+				# return 0
 
 	for arr in large_arr:
 		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
@@ -755,49 +813,53 @@ def step_fourteen(worksheet):
 			if(curr != None): 
 				sumVal += float(curr)
 			writeCell = worksheet[(get_column_letter(col) + "109")]
-			if(abs(sumVal <= 1)):
+			if(abs(sumVal) <= 1):
 				writeCell.value = round_val(sumVal) #Write Cell - i.e Energy Balance 
 			else:	
+				writeCell.value = round_val(sumVal) #Write Cell - i.e Energy Balance 
 				print("MB_Error, Energy Balance is: " + str(sumVal))
 				print("See block: " + current_block_name)
-				return 0
+				# return 0
 
 	for arr in large_arr:
 		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
 		for col in arr:
 			sumVal = float(0.0)
-			curr = worksheet[(get_column_letter(col) + "69")].value #Inlet1
-			if(curr != None): 
-				sumVal += (float(curr) * -1)
-			curr = worksheet[(get_column_letter(col) + "73")].value #Inlet2
-			if(curr != None): 
-				sumVal += (float(curr) * -1)
-			curr = worksheet[(get_column_letter(col) + "77")].value #Inlet3
-			if(curr != None): 
-				sumVal += (float(curr) * -1)
-			curr = worksheet[(get_column_letter(col) + "81")].value #Inlet4
-			if(curr != None): 
-				sumVal += (float(curr) * -1)
 			curr = worksheet[(get_column_letter(col) + "85")].value #Outlet1
 			if(curr != None): 
-				sumVal -= (float(curr) * -1)
+				sumVal += curr
 			curr = worksheet[(get_column_letter(col) + "89")].value #Outlet2
 			if(curr != None): 
-				sumVal -= (float(curr) * -1)
+				sumVal += curr
 			curr = worksheet[(get_column_letter(col) + "93")].value #Outlet3
 			if(curr != None): 
-				sumVal -= (float(curr) * -1)
+				sumVal += curr
 			curr = worksheet[(get_column_letter(col) + "97")].value #Outlet4
 			if(curr != None): 
-				sumVal -= (float(curr) * -1)
+				sumVal += curr
 			curr = worksheet[(get_column_letter(col) + "101")].value #Outlet5
 			if(curr != None): 
-				sumVal -= (float(curr) * -1)
+				sumVal += curr
 			curr = worksheet[(get_column_letter(col) + "105")].value #Outlet6
 			if(curr != None): 
-				sumVal -= (float(curr) * -1)
+				sumVal += curr
+			curr = worksheet[(get_column_letter(col) + "69")].value #Inlet1
+			if(curr != None): 
+				sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "73")].value #Inlet2
+			if(curr != None): 
+				sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "77")].value #Inlet3
+			if(curr != None): 
+				sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "81")].value #Inlet4
+			if(curr != None): 
+				sumVal -= curr
+			curr = worksheet[(get_column_letter(col) + "107")].value #Heat Duty
+			if(curr != None): 
+				sumVal -= curr
 			writeCell = worksheet[(get_column_letter(col) + "110")] 
-			if(abs(sumVal >= -1)):
+			if(abs(sumVal) >= -1):
 				writeCell.value = round_val(sumVal) #Write Cell - i.e Entropy generation
 			else:	
 				writeCell.value = round_val(sumVal) #Manual bypass, should throw error according to specs
@@ -846,23 +908,32 @@ def mod_radfrac(worksheet, large_arr):
 
 
 def add_temperature(worksheet):
+	tempChangeFlag = 0
 	temp_row = find_row_with_key(worksheet, "Calculated temperature [C]")
+	if(temp_row == 0):
+		tempChangeFlag = 1
+		temp_row = find_row_with_key(worksheet, "Calculated temperature [K]")
 	entropy_row = find_row_with_key(worksheet,"Entropy Generation kW/K")
 	heat_row = find_row_with_key(worksheet,"Heat MW")
 
 	worksheet['A111'].value = "Temperature, K"
-	worksheet['A111'].fill = GREEN_HIGHLIGHT
+	worksheet['A111'].fill = GREEN_HIGHLIGHT #Constant here fine
 
 	for col in worksheet.iter_cols(min_col=2,max_col=5, min_row=temp_row, max_row=temp_row):
 		for cell in col:
 			if not (isinstance(cell.value, str)) and cell.value != None:
-				temp = cell.value + 273.15
+				if(tempChangeFlag):
+					temp = cell.value
+				else:
+					temp = cell.value + 273.15
 				cell.offset(row=111 - temp_row).value = temp
 
 	for col in worksheet.iter_cols(min_col=2,max_col=5, min_row=entropy_row, max_row=entropy_row):
 		for cell in col:
 			temp = cell.value
-			cell.value = temp - cell.offset(row=(heat_row-entropy_row)).value/cell.offset(row=1).value * 1000
+			temperature =cell.offset(row=1).value * 1000
+			cell.value = temp / temperature
+
 
 def main():
 	inputData = get_config_variables()
@@ -881,6 +952,7 @@ def main():
 			overall.title = "Overall"
 			pbar.update(25)
 			step_eight(overall)
+			wb_stream.save(streamWorkbook)
 			pbar.update(25)
 			check = step_nine(overall)
 			wb_stream.save(streamWorkbook)

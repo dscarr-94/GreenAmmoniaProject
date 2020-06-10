@@ -1,5 +1,5 @@
-streamBookName: "AspenStreams05182020.xlsx"
-modelBookName: "AspenModels05182020.xlsx"
+streamBookName: "AirSepElectrolysisH-BStreamsExampleRoee.xlsx"
+modelBookName: "AirSepElectrolysisH-BModelsExampleRoee.xlsx"
 streamTitle: "Example streams 5-18"
 modelTitle: "Example models 5-18"
 calculationBlocks: [Heater, HXFlux, Flash2, RPlug]
