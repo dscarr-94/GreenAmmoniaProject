@@ -872,6 +872,12 @@ def step_fourteen(worksheet):
 
 def mod_radfrac(worksheet, large_arr):
 	rad_arr = []
+	tempChangeFlag = 0
+	temp_row = find_row_with_key(worksheet, "Calculated temperature [C]")
+	if(temp_row == 0):
+		tempChangeFlag = 1
+		temp_row = find_row_with_key(worksheet, "Calculated temperature [K]")
+
 	for arr in large_arr:
 		current_block_name = (worksheet[(get_column_letter(arr[0]-1) + "2")].value)
 		if(current_block_name == "RadFrac"):
@@ -906,6 +912,10 @@ def mod_radfrac(worksheet, large_arr):
 			temp = cell.value - (val1 + val2) * 1000
 			cell.value = temp
 
+	for col in worksheet.iter_cols(min_col=rad_arr[0],max_col=rad_arr[len(rad_arr)-1], min_row=temp_row, max_row=temp_row):
+		for cell in col:
+			print(cell.value)
+
 
 def add_temperature(worksheet):
 	tempChangeFlag = 0
@@ -931,9 +941,10 @@ def add_temperature(worksheet):
 	for col in worksheet.iter_cols(min_col=2,max_col=5, min_row=entropy_row, max_row=entropy_row):
 		for cell in col:
 			temp = cell.value
-			temperature =cell.offset(row=1).value * 1000
-			cell.value = temp / temperature
-
+			temperature = cell.offset(row=1).value
+			heat = cell.offset(row=heat_row - entropy_row).value
+			calculated = (temp+heat) - (heat/temperature)*1000
+			cell.value = calculated
 
 def main():
 	inputData = get_config_variables()
